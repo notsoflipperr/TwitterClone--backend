@@ -28,17 +28,26 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
             res.send(post);
         })
         
-        //get user
         app.get('/user', async (req, res) => {
-            const user = await userCollection.find().toArray();
-            res.send(user);
+          const user = await userCollection.find().toArray();
+          res.send(user);
         })
+
+         //This is what im trying to figure out boss
+        app.get('/getPhone', async (req, res) => { 
+          const phonenumber = req.query.phonenumber;
+          const user = await userCollection.find({phonenumber:phonenumber}).toArray();
+          res.send(user);
+        })
+    
 
         app.get('/loggedInUser', async(req, res) => {
           const email = req.query.email;
           const user = await userCollection.find({email:email}).toArray();
           res.send(user);
         })
+
+
 
         app.get('/userPost', async(req, res) => {
           const email = req.query.email;
@@ -49,6 +58,7 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
         //post
         app.post('/post', async (req, res) => {
             const post = req.body;
+            console.log(post);
             const result = await postCollection.insertOne(post);
             res.send(result);
         })
