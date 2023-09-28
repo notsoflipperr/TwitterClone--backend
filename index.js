@@ -37,9 +37,9 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
         app.get('/getPhone', async (req, res) => { 
           const phonenumber = req.query.phonenumber;
           const user = await userCollection.find({phonenumber:phonenumber}).toArray();
+          console.log(user);
           res.send(user);
         })
-    
 
         app.get('/loggedInUser', async(req, res) => {
           const email = req.query.email;
