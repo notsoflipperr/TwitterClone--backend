@@ -1,6 +1,6 @@
 const express = require('express')
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -24,7 +24,17 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 
         //get
         app.get('/post', async (req, res) => {
-            const post = (await postCollection.find().toArray()).reverse();
+            const post = (await postCollection.aggregate([
+              {
+                $lookup: {
+                  from: 'users',
+                  localField: 'userId',
+                  foreignField: '_id',
+                  as: 'user'
+                }
+              }
+            ]).toArray()).reverse();
+
             res.send(post);
         })
         
@@ -50,16 +60,36 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 
 
         app.get('/userPost', async(req, res) => {
-          const email = req.query.email;
-          const post = (await postCollection.find({email:email}).toArray()).reverse();
+          const userid = ObjectId(req.query?.userid);
+          const post = (await postCollection.aggregate([
+            {
+              $match: {
+                userId: userid
+              }
+            },
+            {
+              $lookup: {
+                from: 'users',
+                localField: 'userId',
+                foreignField: '_id',
+                as: 'user'
+              }
+            }
+          ]).toArray()).reverse();
           res.send(post);
         })
 
         //post
         app.post('/post', async (req, res) => {
-            const post = req.body;
-            console.log(post);
-            const result = await postCollection.insertOne(post);
+            const userId = ObjectId(req.body.userId);
+            const { post, photo } = req.body;
+            const tweet = {
+              userId,
+              post,
+              photo
+            }
+            console.log(tweet);
+            const result = await postCollection.insertOne(tweet);
             res.send(result);
         })
 
